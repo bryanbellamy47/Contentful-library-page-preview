@@ -1,26 +1,36 @@
 // src/components/Preview.tsx
 import React, { useEffect, useState } from 'react';
-import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import type { FieldAppSDK } from '@contentful/app-sdk';
+import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 
+import {
+  GlobalStyles,
+  Card,
+  Heading,
+  Text,
+  Stack,
+  Box,
+} from '@contentful/f36-components';
+
+type Section = { title: string; bodyHtml: string };
 type PreviewProps = { sdk: FieldAppSDK };
 
 export default function Preview({ sdk }: PreviewProps) {
-  const [html, setHtml] = useState('<p>Loading preview …</p>');
+  const [sections, setSections] = useState<Section[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  /** 1️⃣  Autosize on mount */
+  /* ─────────────────────────────  auto-resize  ───────────────────────────── */
   useEffect(() => {
     sdk.window.startAutoResizer();
   }, [sdk]);
 
-  /** 2️⃣  Fetch & render */
+  /* ─────────────────────────────  load data  ─────────────────────────────── */
   useEffect(() => {
     (async () => {
       try {
-        const entrySys       = sdk.entry.getSys();
-        const entryId        = entrySys.id;
-        const contentTypeId  = entrySys.contentType.sys.id;
-        const isHIPAA        = contentTypeId === 'hipaaLibraryPage';
+        const entryId       = sdk.entry.getSys().id;
+        const contentTypeId = sdk.entry.getSys().contentType.sys.id;
+        const isHIPAA       = contentTypeId === 'hipaaLibraryPage';
 
         const sectionType       = isHIPAA ? 'hipaaLibraryPageSection' : 'libraryPageSection';
         const sectionTitleField = isHIPAA ? 'sectionId'              : 'title';
@@ -30,50 +40,64 @@ export default function Preview({ sdk }: PreviewProps) {
         const { items } = await sdk.space.getEntries({
           content_type: sectionType,
           [`fields.${parentField}.sys.id`]: entryId,
-          order: 'fields.sortOrder'
+          order: 'fields.sortOrder',
         });
 
         if (!items.length) {
-          setHtml('<p><em>No sections found.</em></p>');
+          setSections([]);
           return;
         }
 
-        const markup = items
-          .map(item => {
-            const fields = item.fields as any;
-            const title  = fields?.[sectionTitleField]?.[locale] ?? '(Untitled)';
-            const body   = fields?.body?.[locale];
-            return `
-              <div class="section-card">
-                <h3>${title}</h3>
-                ${body ? documentToHtmlString(body) : '<em>No content</em>'}
-              </div>`;
-          })
-          .join('');
-
-        setHtml(markup);
-      } catch (err) {
-        console.error(err);
-        setHtml('<p style="color:red;">Error loading sections.</p>');
+        setSections(
+          items.map((it: any) => ({
+            title:
+              it.fields?.[sectionTitleField]?.[locale] ?? '(Untitled)',
+            bodyHtml:
+              it.fields?.body?.[locale]
+                ? documentToHtmlString(it.fields.body[locale])
+                : '<em>No content</em>',
+          }))
+        );
+      } catch (e) {
+        console.error(e);
+        setError('Sorry – I couldn’t load the sections.');
       }
     })();
   }, [sdk]);
 
-  /** 3️⃣  Exact height poke after every paint */
-  useEffect(() => {
-    // wait a tick so DOM is flushed
-    const id = setTimeout(() => {
-      const h = document.body.scrollHeight;
-      sdk.window.updateHeight(h);
-    }, 0);
-    return () => clearTimeout(id);
-  }, [html, sdk]);
+  /* ─────────────────────────────  render  ────────────────────────────────── */
+  if (error) return <Text tone="negative">{error}</Text>;
+  if (!sections.length)
+    return <Text fontStyle="italic">No sections found.</Text>;
 
   return (
-    <div
-      className="preview-root"
-      style={{ padding: '1rem' }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <>
+      {/* F36 resets & tokens → gives you that “native” look */}
+      <GlobalStyles />
+
+      <Stack flexDirection="column" gap="spacingL">
+        {sections.map(({ title, bodyHtml }, idx) => (
+          <Card
+            key={idx}
+            padding="spacingL"
+            style={{
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+            }}
+          >
+            <Heading as="h3" marginBottom="spacingM">
+              {title}
+            </Heading>
+
+            <Box
+              as="div"
+              style={{ lineHeight: 1.6, fontSize: '0.9rem' }}
+              /* safe because the HTML comes from Contentful’s renderer           */
+              dangerouslySetInnerHTML={{ __html: bodyHtml }}
+            />
+          </Card>
+        ))}
+      </Stack>
+    </>
   );
 }
