@@ -9,9 +9,9 @@ vi.mock('@contentful/react-apps-toolkit', () => ({
 }));
 
 describe('Field component', () => {
-  it('Component text exists', () => {
+  it('Renders preview placeholder', () => {
     const { getByText } = render(<Field />);
 
-    expect(getByText('Hello Entry Field Component (AppId: test-app)')).toBeTruthy();
+    expect(getByText('Loading preview …')).toBeTruthy();
   });
 });

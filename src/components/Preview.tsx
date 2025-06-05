@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import type { FieldAppSDK } from '@contentful/app-sdk';
+import '../styles/preview.css';
 
 type PreviewProps = { sdk: FieldAppSDK };
 
@@ -17,6 +18,9 @@ export default function Preview({ sdk }: PreviewProps) {
   useEffect(() => {
     (async () => {
       try {
+        if (!sdk.entry || !sdk.space) {
+          return;
+        }
         const entrySys       = sdk.entry.getSys();
         const entryId        = entrySys.id;
         const contentTypeId  = entrySys.contentType.sys.id;
@@ -41,10 +45,12 @@ export default function Preview({ sdk }: PreviewProps) {
         const markup = items
           .map(item => {
             const fields = item.fields as any;
-            const title  = fields?.[sectionTitleField]?.[locale] ?? '(Untitled)';
-            const body   = fields?.body?.[locale];
+            const title      = fields?.[sectionTitleField]?.[locale] ?? '(Untitled)';
+            const body       = fields?.body?.[locale];
+            const sortOrder  = fields?.sortOrder?.[locale] ?? fields?.sortOrder ?? '';
             return `
               <div class="section-card">
+                <div class="section-sort">${sortOrder}</div>
                 <h3>${title}</h3>
                 ${body ? documentToHtmlString(body) : '<em>No content</em>'}
               </div>`;

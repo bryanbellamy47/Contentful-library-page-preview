@@ -29,6 +29,12 @@ body, .preview-root {
     font-weight: 600;
     margin: 0 0 .75rem;
   }
+
+  /* sort order label */
+  .section-sort {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }
   
   /* rich-text body */
   .section-card p { margin: 0 0 .6rem; }
