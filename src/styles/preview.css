@@ -1,0 +1,35 @@
+/* Apple-like cards for each Library Page Section */
+body, .preview-root {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                 Roboto, Helvetica, Arial, sans-serif;
+    color: #1e1e1e;
+    line-height: 1.5;
+  }
+  
+  /* card container */
+  .section-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,.04),
+      0 4px 12px rgba(0,0,0,.06);
+    padding: 1.25rem 1.5rem;
+    margin-block: 1rem;               /* separates cards */
+    transition: box-shadow .2s ease;
+  }
+  .section-card:hover {
+    box-shadow:
+      0 2px 4px rgba(0,0,0,.05),
+      0 6px 16px rgba(0,0,0,.08);
+  }
+  
+  /* headings inside cards */
+  .section-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 .75rem;
+  }
+  
+  /* rich-text body */
+  .section-card p { margin: 0 0 .6rem; }
+  .section-card em { color: #666; }
