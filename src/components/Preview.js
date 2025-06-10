@@ -13,7 +13,7 @@ export default function Preview({ sdk }) {
         const isHIPAA = contentTypeId === 'hipaaLibraryPage';
 
         const sectionType       = isHIPAA ? 'hipaaLibraryPageSection' : 'libraryPageSection';
-        const sectionTitleField = isHIPAA ? 'sectionId'              : 'title';
+        const sectionTitleField = isHIPAA ? 'sectionId'              : 'sectionId';
         const parentField       = 'parent';
         const locale            = sdk.locales.default;
 
